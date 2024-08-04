@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import wavfile
 
 # Load the audio file
-audio_file = '/Users/anettvarghese/Downloads/Test rec.wav'
+audio_file = '/Users/anettvarghese/Downloads/Test rec.wav' #add the path of the audio file it should be in .wav format
 sample_rate, data = wavfile.read(audio_file)
 
 # Convert stereo to mono if the audio is stereo
