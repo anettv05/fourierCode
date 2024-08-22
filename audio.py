@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sounddevice as sd
 from scipy.io import wavfile
+
 
 # Load the audio file
 audio_file = '/Users/anettvarghese/Downloads/Test rec.wav' #add the path of the audio file it should be in .wav format
@@ -9,9 +11,12 @@ fc = 900* 10**3
 wc = 2* np.pi * fc
 A = 1
 # Convert stereo to mono if the audio is stereo
+'''
 if len(data.shape) > 1:
     data = data.mean(axis=1)
+'''
 t = np.linspace(0,len(data)/sample_rate,len(data))
+
 # Compute the Fourier transform
 
 
@@ -95,3 +100,6 @@ plt.ylabel('Magnitude')
 plt.plot(t, data)
 plt.grid(True)
 plt.show()
+demodulated_signal = np.int16(recont * 32767)
+sd.play(recont,sample_rate)
+sd.wait()
