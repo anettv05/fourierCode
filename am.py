@@ -1,25 +1,105 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import sounddevice as sd
 from scipy.io import wavfile
-from scipy.signal import butter, lfilter
 
-# Step 1: Read the audio file
-sample_rate, data = wavfile.read('/Users/anettvarghese/Downloads/Test rec.wav')
 
-# Step 2: Demodulate the signal (assuming AM demodulation)
-fc = 90 * 10**6  # Carrier frequency
-wc = 2 * np.pi * fc
-t = np.linspace(0, len(data) / sample_rate, len(data))
+# Load the audio file
+audio_file = '/Users/anettvarghese/Downloads/Test rec.wav' #add the path of the audio file it should be in .wav format
+sample_rate, data = wavfile.read(audio_file)
+fc = 900* 10**3
+wc = 2* np.pi * fc
+A = 1
+# Convert stereo to mono if the audio is stereo
+'''
+if len(data.shape) > 1:
+    data = data.mean(axis=1)
+'''
+t = np.linspace(0,len(data)/sample_rate,len(data))
 
-# Multiply by the carrier and apply a low-pass filter to extract the original signal
-demodulated_signal = data * np.cos(wc * t)
+# Compute the Fourier transform
+data = data/max(data)
 
-# Step 3: Normalize the demodulated signal
-demodulated_signal = demodulated_signal / np.max(np.abs(demodulated_signal))
+# Compute the frequencies corresponding to the FFT
+frequencies = np.fft.fftfreq(len(data), 1/sample_rate)
+ampmod = (data+A) * np.cos(wc * t)
 
-# Step 4: Convert to 16-bit integers
-demodulated_signal = np.int16(demodulated_signal * 32767)
+'''
+# Plot the Fourier transform magnitude
+plt.figure(figsize=(10, 4))
+plt.title('Fourier Transform of Audio Signal')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Magnitude')
+plt.plot(frequencies[:len(frequencies)//2], np.abs(fourier_transform)[:len(frequencies)//2])
+plt.grid(True)
+'''
+fourier_transform = np.fft.fft(data)
+plt.subplot(2,1,1)
+plt.title('Amp modulation of Audio Signal')
+plt.xlabel('Time')
+plt.ylabel('Magnitude')
+plt.plot(t, data)
+plt.grid(True)
 
-# Step 5: Play the demodulated signal
-sd.play(demodulated_signal, sample_rate)
-sd.wait()  # Wait until the playback is finished
+plt.subplot(2,1,2)
+plt.title('Fourier Transform of Audio Signal')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Magnitude')
+plt.plot(frequencies[:len(frequencies)//2], np.abs(fourier_transform)[:len(frequencies)//2])
+plt.grid(True)
+plt.show()
+
+#plt.figure(figsize=(10, 4))
+plt.subplot(2,1,1)
+plt.title('Amp modulation of Audio Signal')
+plt.xlabel('Time')
+plt.ylabel('Magnitude')
+plt.plot(t, ampmod)
+plt.grid(True)
+fourier_transform = np.fft.fft(ampmod)
+# Plot the Fourier AM
+plt.subplot(2,1,2)
+plt.title('Fourier Transform of Audio Signal')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Magnitude')
+plt.plot(frequencies[:len(frequencies)//2], np.abs(fourier_transform)[:len(frequencies)//2])
+plt.grid(True)
+plt.show()
+
+demSig = ampmod* np.cos(wc*t)
+fourier_transform = np.fft.fft(demSig)
+plt.subplot(2,1,1)
+plt.title('Demodulation of AM Signal')
+plt.xlabel('Time')
+plt.ylabel('Magnitude')
+plt.plot(t, demSig)
+plt.grid(True)
+
+
+# Plot the Fourier demodulation magnitude
+plt.subplot(2,1,2)
+plt.title('Fourier Transform of Audio Signal')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Magnitude')
+plt.plot(frequencies[:len(frequencies)//2], np.abs(fourier_transform)[:len(frequencies)//2])
+plt.grid(True)
+plt.show()
+recont = (demSig * 2 )/(1+np.cos(2*wc*t))
+
+plt.subplot(2,1,1)
+plt.title('Demodulation of AM Signal')
+plt.xlabel('Time')
+plt.ylabel('Magnitude')
+plt.plot(t, recont)
+plt.grid(True)
+
+plt.subplot(2,1,2)
+plt.title('Data of AM Signal')
+plt.xlabel('Time')
+plt.ylabel('Magnitude')
+plt.plot(t, data)
+plt.grid(True)
+plt.show()
+demodulated_signal = np.int16(recont * 32767)
+sd.play(recont,sample_rate)
+sd.wait()
