@@ -1,7 +1,9 @@
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
 from scipy.fftpack import fft , ifft
 from scipy.fft import dct,idct
+
 def fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', remove_mean=False, plot_subbands=True):
 # Take care of Vector inputs for einsum()
 # ValueError: einstein sum subscripts string contains too many subscripts for operand 0
@@ -92,7 +94,7 @@ def fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', re
         FIBFs = Y  # Return output in 3D Matrix with the third dimension corresponding to different subbands    
 
     if plot_subbands:
-        # plt.show()
+        #plt.show()
         t = np.arange(0, X.shape[0], 1) / fs
         fc = np.sort(fc)  # always sort fc in ascending order
         if fc[0] != 0:
@@ -121,7 +123,7 @@ def fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', re
         if n == 2:
             plt.figure(figsize=(16, 16))
         else:
-            plt.figure(figsize=(8, 16))
+            plt.figure(figsize=(4, 8))
         # print(m)
         # print(n)
         
@@ -141,10 +143,30 @@ def fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', re
                 elif sort_fc == 'descend':
                     plt.title('FIBF {0}: Between {1} Hz to {2} Hz'.format(k, fc[k], fc[k-1]))
         # plt.title('Fourier Decomposition Method')
-
+    plt.tight_layout()                
+    plt.show()
     if data_type == 'rows':
         if X.shape[1] == 1:  # Output is returned as a 2D matrix if input to the function is a column vector or a row vector
             return FIBFs.T
         else:
             return FIBFs.transpose(1, 0, 2)  # The final 3D Matrix is a collection of multiple 2D matrices
     return FIBFs
+
+
+
+# Sampling frequency
+fs = 1000  # 1000 Hz
+
+# Time vector from 0 to 1 second with fs samples per second
+t = np.arange(0, 1, 1/fs)
+
+# Multi-component signal (sum of sinusoids with different frequencies)
+X = np.sin(2 * np.pi * 50 * t) + 0.5 * np.sin(2 * np.pi * 150 * t) + 0.25 * np.sin(2 * np.pi * 300 * t)
+
+# Reshape X to be a column vector for input
+X = X.reshape(-1, 1)
+
+# Cutoff frequencies for the subbands (in Hz), ensuring that the last value is fs/2
+fc = np.array([50, 100, 200, 400])  # Example frequency bands
+
+fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', remove_mean=False, plot_subbands=True)
