@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import wavfile
 from scipy.fftpack import fft , ifft
 from scipy.fft import dct,idct
-
+import pandas as pd
 def fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', remove_mean=False, plot_subbands=True):
 # Take care of Vector inputs for einsum()
 # ValueError: einstein sum subscripts string contains too many subscripts for operand 0
@@ -101,9 +101,9 @@ def fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', re
             fc = [0, fc]
         if fc[-1] != fs/2:
             fc = [fc, fs/2]
-        
+        np.reshape(fc,(1,))    
         if sort_fc == 'descend':
-            fc[::-1].sort()
+            fc = np.sort(fc)[::-1]
 
         no_of_subbands = len(fc) - 1
         if no_of_subbands >= 6:
@@ -153,7 +153,7 @@ def fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', re
     return FIBFs
 
 
-
+'''
 # Sampling frequency
 fs = 1000  # 1000 Hz
 
@@ -169,4 +169,24 @@ X = X.reshape(-1, 1)
 # Cutoff frequencies for the subbands (in Hz), ensuring that the last value is fs/2
 fc = np.array([50, 100, 200, 400])  # Example frequency bands
 
+fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', remove_mean=False, plot_subbands=True)
+'''
+
+file_path = '/Users/anettvarghese/Downloads/MILimbEEG An EEG Signals Dataset based on Upper and Lower Limb Task During the Execution of Motor and Motorimagery Tasks/S1/S1R1I2_1.csv'  # Update with the correct path if necessary
+data = pd.read_csv(file_path)
+
+# Convert the DataFrame to a NumPy array
+X = data.values
+
+# Reshape X to be a column vector for input (if it's a 1D array)
+if X.ndim == 1:
+    X = X.reshape(-1, 1)
+
+# Sampling frequency
+fs = 125  # Example value; change it to match your data
+
+# Define the cutoff frequencies for the subbands (in Hz)
+fc = np.array([15, 40, 50, 80])  # Example frequency bands
+
+# Call the fdm function
 fdm(X, fs, fc, data_type='columns', filter_type='dct', sort_fc='descend', remove_mean=False, plot_subbands=True)
